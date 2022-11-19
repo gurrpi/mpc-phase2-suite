@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[4385],{4063:e=>{e.exports=JSON.parse('{"label":"hello","permalink":"/mpc-phase2-suite/blog/tags/hello","allTagsPath":"/mpc-phase2-suite/blog/tags","count":2}')}}]);
