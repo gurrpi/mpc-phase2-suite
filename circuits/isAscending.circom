@@ -23,4 +23,4 @@ template isAscending (n) {
     out <== result;
 }
 
-component main { public [ nums ] } = isAscending(4);
+component main { public [ nums ] } = isAscending(2);
