@@ -1,6 +1,6 @@
 import chai, { expect } from "chai"
 import chaiAsPromised from "chai-as-promised"
-import { OAuthCredential, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
+import { User, OAuthCredential, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth"
 import { initializeApp } from "firebase/app"
 import {
     createNewFirebaseUserWithEmailAndPw,
@@ -44,8 +44,12 @@ describe("Authentication", () => {
     describe("getCurrentFirebaseAuthUser()", () => {
         // Prepare all necessary data to execute the unit tests for the method.
         const user = fakeUsersData.fakeUser1
-
+        const userPassword = generatePseudoRandomStringOfNumbers(24)
         const { userApp } = initializeUserServices()
+        const userAuth = getAuth(userApp)
+
+        let userUID: string
+        let userFromCredential: User
 
         it("should revert when there is no authenticated user", async () => {
             expect(() => getCurrentFirebaseAuthUser(userApp)).to.throw(
@@ -59,16 +63,17 @@ describe("Authentication", () => {
             )
         })
 
-        it("should return the current Firebase user authenticated for a given application", async () => {
-            // Given.
+        it("create user entry", async () => {
             const userFirebaseCredentials = await createNewFirebaseUserWithEmailAndPw(
                 userApp,
                 user.data.email,
-                generatePseudoRandomStringOfNumbers(24)
+                userPassword
             )
-            const userFromCredential = userFirebaseCredentials.user
-            user.uid = userFromCredential.uid
+            userFromCredential = userFirebaseCredentials.user
+            userUID = userFromCredential.uid
+        })
 
+        it("should return the current Firebase user authenticated for a given application", async () => {
             // When.
             const currentAuthenticatedUser = getCurrentFirebaseAuthUser(userApp)
 
@@ -85,10 +90,43 @@ describe("Authentication", () => {
             )
         })
 
+        it("should not be possible to authenticate if the user has been disabled from the Authentication service by coordinator", async () => {
+            // Disable user.
+            const disabledRecord = await adminAuth.updateUser(userUID, { disabled: true })
+            expect(disabledRecord.disabled).to.be.true
+
+            // Try to authenticate with the disabled user.
+            await expect(signInWithEmailAndPassword(userAuth, user.data.email, userPassword)).to.be.rejectedWith(
+                "Firebase: Error (auth/user-disabled)."
+            )
+
+            // re enable the user
+            const recordReset = await adminAuth.updateUser(userUID, {
+                disabled: false
+            })
+            expect(recordReset.disabled).to.be.false
+        })
+
+        it("should not be possible to authenticate with an incorrect password", async () => {
+            // Try to authenticate with the wrong password.
+            await expect(signInWithEmailAndPassword(userAuth, user.data.email, "wrongPassword")).to.be.rejectedWith(
+                "Firebase: Error (auth/wrong-password)."
+            )
+        })
+
+        it("should not be possible to authenticate with an incorrect email", async () => {
+            // Try to authenticate with the wrong email.
+            await expect(signInWithEmailAndPassword(userAuth, "wrongEmail", userPassword)).to.be.rejected
+        })
+
+        it("should not be possible to authenticate if Firebase is unreachable", async () => {
+            // @todo mock unreachable firebase.
+        })
+
         afterAll(async () => {
             // Finally.
-            await adminFirestore.collection(commonTerms.collections.users.name).doc(user.uid).delete()
-            await adminAuth.deleteUser(user.uid)
+            await adminFirestore.collection(commonTerms.collections.users.name).doc(userUID).delete()
+            await adminAuth.deleteUser(userUID)
         })
     })
 
