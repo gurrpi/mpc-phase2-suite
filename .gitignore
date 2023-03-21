@@ -1,8 +1,12 @@
 # dependencies
 node_modules/
 package-lock.json
-yarn.lock
 yarn-error.log
+lerna-debug.log
 
 # test coverage
 coverage/
+
+.DS_Store
+
+.gcloudignore

@@ -1,0 +1,43 @@
+{
+    "testPathIgnorePatterns": [".d.ts", ".js", "packages/actions/test/unit/contract.test.ts"],
+    "moduleFileExtensions": ["ts", "js"],
+    "transform": {
+        "\\.(t|j)s?$": "babel-jest"
+    },
+    "testMatch": ["**/test/**/*.test.*"],
+    "globals": {
+        "ts-jest": {
+            "tsConfig": "tsconfig.json"
+        }
+    },
+    "moduleNameMapper": {
+        "@zkmpc/(.*)$": "<rootDir>/packages/$1"
+    },
+    "testTimeout": 100000000,
+    "setupFiles": ["dotenv/config"],
+    "collectCoverageFrom": [
+        "packages/actions/**/*", 
+        "!packages/actions/test/data/*",
+        "!packages/actions/test/utils/*",
+        "packages/backend/**/*",
+        "!packages/backend/types/*",
+        "packages/phase2cli/**/*",
+        "!packages/phase2cli/types/*",
+        "!packages/**/rollup.config.ts",
+        "!**/dist/**", 
+        "!**/node_modules/**", 
+        "!**/build/**"
+    ],
+    "verbose": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage/",
+    "coverageProvider": "v8",
+    "coverageThreshold": {
+        "global": {
+            "branches": 90,
+            "functions": 95,
+            "lines": 95,
+            "statements": 95
+        }
+    }
+}
